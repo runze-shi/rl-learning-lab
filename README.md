@@ -17,11 +17,11 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 3 | Monte Carlo and Temporal Difference Learning | MC learns after a full episode; TD learns at each step using bootstrapping | Notes |
 | Day 4 | Q-Learning Foundations | Q-table, epsilon-greedy, off-policy learning, Q-learning update rule | Hands-on started |
 | Day 5 | Q-Learning Hands-on: FrozenLake and Taxi | Gymnasium environments, Q-table initialization, greedy policy, epsilon-greedy policy, training loop, evaluation, Hugging Face Hub upload | Notebook + Models |
+| Day 6 | Deep Q-Learning Foundations | From Q-table to neural network approximation, Atari observation space, stacked frames, Q-target, TD error, bootstrapping, epsilon decay, greedy evaluation | In progress |
 
-````md
 ## Current Focus
 
-I have completed the first hands-on pass of the Unit 2 Q-learning lab from the Hugging Face Deep RL Course.
+I have completed the first hands-on pass of the Unit 2 Q-learning lab from the Hugging Face Deep RL Course and started Unit 3: Deep Q-Learning.
 
 Current progress:
 
@@ -40,6 +40,15 @@ Current progress:
 - Trained and evaluated the FrozenLake agent
 - Extended the same Q-learning structure to Taxi-v4
 - Uploaded trained Q-learning models to Hugging Face Hub
+- Started studying Deep Q-Learning / DQN
+- Understood why Q-tables do not scale to large observation spaces such as Atari
+- Learned that DQN replaces the Q-table with a neural network that approximates Q-values
+- Studied stacked frames as state input for capturing motion and temporal information
+- Learned the difference between the network prediction `Q(s, a)` and the Q-target
+- Understood that the Q-target is computed from real reward plus discounted future value
+- Connected TD error, bootstrapping, and gradient descent to DQN training
+- Reviewed how epsilon-greedy exploration gradually shifts toward exploitation through epsilon decay
+- Understood that evaluation usually uses a greedy policy after training
 
 Hugging Face model repos:
 
@@ -48,19 +57,8 @@ Hugging Face model repos:
 
 Next step:
 
-- Clean up notes from the notebook
+- Finish the full DQN algorithm walkthrough
+- Study experience replay and target network
+- Clean up notes from the Q-learning notebook
 - Add a separate markdown learning note file
-- Start Unit 3: Deep Q-Learning
-
-## Repository Structure
-
-```text
-rl-learning-lab/
-│
-├── README.md
-├── LICENSE
-├── .gitignore
-└── notebooks/
-    ├── .gitkeep
-    └── unit2_q_learning_frozenlake_taxi.ipynb
-```
+- Start a DQN notebook or concept note for Unit 3
