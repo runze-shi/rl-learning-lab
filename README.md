@@ -16,11 +16,12 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 2 | Value Functions and Bellman Equation | State-value function, action-value function, return, Bellman equation | Notes |
 | Day 3 | Monte Carlo and Temporal Difference Learning | MC learns after a full episode; TD learns at each step using bootstrapping | Notes |
 | Day 4 | Q-Learning Foundations | Q-table, epsilon-greedy, off-policy learning, Q-learning update rule | Hands-on started |
-| Day 5 | FrozenLake Environment Setup | Gymnasium environment, RGB array rendering, observation space, state representation, Q-table initialization | Notebook + Notes |
+| Day 5 | Q-Learning Hands-on: FrozenLake and Taxi | Gymnasium environments, Q-table initialization, greedy policy, epsilon-greedy policy, training loop, evaluation, Hugging Face Hub upload | Notebook + Models |
 
+````md
 ## Current Focus
 
-I am currently working on the Unit 2 Q-learning hands-on lab from the Hugging Face Deep RL Course.
+I have completed the first hands-on pass of the Unit 2 Q-learning lab from the Hugging Face Deep RL Course.
 
 Current progress:
 
@@ -32,28 +33,24 @@ Current progress:
 - Studied observation space and state representation
 - Connected `(row, col)` positions to integer state IDs
 - Created and initialized the Q-table using `np.zeros`
+- Implemented greedy policy
+- Implemented epsilon-greedy policy
+- Defined hyperparameters
+- Implemented the Q-learning training loop
+- Trained and evaluated the FrozenLake agent
+- Extended the same Q-learning structure to Taxi-v4
+- Uploaded trained Q-learning models to Hugging Face Hub
+
+Hugging Face model repos:
+
+- FrozenLake: `Mantry/q-FrozenLake-v1-4x4-noSlippery`
+- Taxi: `Mantry/q-Taxi-v4`
 
 Next step:
 
-- Implement greedy policy
-- Implement epsilon-greedy policy
-- Define hyperparameters
-- Implement the Q-learning training loop
-- Evaluate the trained agent
-- Extend the same Q-learning structure to Taxi-v3
-
-## Topics I Plan to Learn
-
-- Reinforcement Learning fundamentals
-- Markov Decision Processes
-- Q-learning
-- Deep Q-learning
-- Policy Gradient methods
-- Actor-Critic methods
-- Multi-Agent Reinforcement Learning
-- Simulation environments
-- Robotics simulation
-- Intelligent manufacturing systems
+- Clean up notes from the notebook
+- Add a separate markdown learning note file
+- Start Unit 3: Deep Q-Learning
 
 ## Repository Structure
 
@@ -61,8 +58,9 @@ Next step:
 rl-learning-lab/
 │
 ├── README.md
-├── notebooks/
-│   └── unit2_q_learning_frozenlake_taxi.ipynb
-├── notes/
-│   └── unit2_q_learning_notes.md
-└── requirements.txt
+├── LICENSE
+├── .gitignore
+└── notebooks/
+    ├── .gitkeep
+    └── unit2_q_learning_frozenlake_taxi.ipynb
+```
