@@ -18,37 +18,31 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 4 | Q-Learning Foundations | Q-table, epsilon-greedy, off-policy learning, Q-learning update rule | Hands-on started |
 | Day 5 | Q-Learning Hands-on: FrozenLake and Taxi | Gymnasium environments, Q-table initialization, greedy policy, epsilon-greedy policy, training loop, evaluation, Hugging Face Hub upload | Notebook + Models |
 | Day 6 | Deep Q-Learning Foundations | From Q-table to neural network approximation, Atari observation space, stacked frames, Q-target, TD error, bootstrapping, epsilon decay, greedy evaluation | In progress |
+| Day 7 | DQN Algorithm and Stabilization | Experience replay, replay memory, fixed Q-target, current network vs target network, Double DQN, theta as learned parameters, phi as processed state input | Concept notes |
 
-## Current Focus
+### Day 7 Progress: DQN Algorithm and Stabilization
 
-I have completed the first hands-on pass of the Unit 2 Q-learning lab from the Hugging Face Deep RL Course and started Unit 3: Deep Q-Learning.
+Continued studying Deep Q-Learning / DQN with a focus on the full training algorithm and the stability techniques used in DQN.
 
-Current progress:
+New understanding:
 
-- Set up the Colab environment
-- Fixed compatibility issues with newer Python / Colab versions
-- Created the FrozenLake-v1 environment
-- Studied `render_mode="rgb_array"`
-- Studied FrozenLake map symbols: `S`, `F`, `H`, `G`
-- Studied observation space and state representation
-- Connected `(row, col)` positions to integer state IDs
-- Created and initialized the Q-table using `np.zeros`
-- Implemented greedy policy
-- Implemented epsilon-greedy policy
-- Defined hyperparameters
-- Implemented the Q-learning training loop
-- Trained and evaluated the FrozenLake agent
-- Extended the same Q-learning structure to Taxi-v4
-- Uploaded trained Q-learning models to Hugging Face Hub
-- Started studying Deep Q-Learning / DQN
-- Understood why Q-tables do not scale to large observation spaces such as Atari
-- Learned that DQN replaces the Q-table with a neural network that approximates Q-values
-- Studied stacked frames as state input for capturing motion and temporal information
-- Learned the difference between the network prediction `Q(s, a)` and the Q-target
-- Understood that the Q-target is computed from real reward plus discounted future value
-- Connected TD error, bootstrapping, and gradient descent to DQN training
-- Reviewed how epsilon-greedy exploration gradually shifts toward exploitation through epsilon decay
-- Understood that evaluation usually uses a greedy policy after training
+- DQN replaces the Q-table with a neural network that predicts Q-values.
+- The Q-network uses trainable parameters, usually written as theta.
+- Theta represents all learned weights and biases of the neural network.
+- The state input may be written as phi, which means a processed state representation.
+- The Q-target is the learning target for the current Q-value prediction.
+- TD error measures the difference between the Q-target and the current Q-value prediction.
+- Experience replay stores past experience tuples in replay memory.
+- Each experience tuple contains state, action, reward, and next state.
+- DQN randomly samples mini-batches from replay memory instead of only learning from the latest experience.
+- Experience replay helps reuse experiences, reduce correlation between sequential samples, prevent forgetting, and stabilize learning.
+- DQN uses two networks:
+  - Current Q-network: the main network being trained.
+  - Target Q-network: a delayed copy used to compute more stable Q-targets.
+- Fixed Q-target means the target network is updated only every few steps, so the learning target does not move all the time.
+- Double DQN separates action selection and action evaluation.
+- In Double DQN, the current network selects the best next action, and the target network evaluates that selected action.
+- This helps reduce Q-value overestimation caused by the max operation.
 
 Hugging Face model repos:
 
@@ -57,8 +51,8 @@ Hugging Face model repos:
 
 Next step:
 
-- Finish the full DQN algorithm walkthrough
-- Study experience replay and target network
-- Clean up notes from the Q-learning notebook
-- Add a separate markdown learning note file
-- Start a DQN notebook or concept note for Unit 3
+- Review the full DQN algorithm from start to finish
+- Organize Day 6 and Day 7 into a separate Unit 3 DQN concept note
+- Prepare a short meeting explanation connecting DQN to smart manufacturing
+- Start DQN hands-on only after the core algorithm feels clearer
+- Later connect DQN ideas to multi-agent reinforcement learning and robotics simulation
