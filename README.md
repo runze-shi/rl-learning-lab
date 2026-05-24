@@ -20,39 +20,44 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 6 | Deep Q-Learning Foundations | From Q-table to neural network approximation, Atari observation space, stacked frames, Q-target, TD error, bootstrapping, epsilon decay, greedy evaluation | In progress |
 | Day 7 | DQN Algorithm and Stabilization | Experience replay, replay memory, fixed Q-target, current network vs target network, Double DQN, theta as learned parameters, phi as processed state input | Concept notes |
 
-### Day 7 Progress: DQN Algorithm and Stabilization
+## Day 8 Progress: Policy Gradient Foundations
 
-Continued studying Deep Q-Learning / DQN with a focus on the full training algorithm and the stability techniques used in DQN.
+Restarted RL study after a one-week break and began Unit 4: Policy Gradient with PyTorch.
 
 New understanding:
 
-- DQN replaces the Q-table with a neural network that predicts Q-values.
-- The Q-network uses trainable parameters, usually written as theta.
-- Theta represents all learned weights and biases of the neural network.
-- The state input may be written as phi, which means a processed state representation.
-- The Q-target is the learning target for the current Q-value prediction.
-- TD error measures the difference between the Q-target and the current Q-value prediction.
-- Experience replay stores past experience tuples in replay memory.
-- Each experience tuple contains state, action, reward, and next state.
-- DQN randomly samples mini-batches from replay memory instead of only learning from the latest experience.
-- Experience replay helps reuse experiences, reduce correlation between sequential samples, prevent forgetting, and stabilize learning.
-- DQN uses two networks:
-  - Current Q-network: the main network being trained.
-  - Target Q-network: a delayed copy used to compute more stable Q-targets.
-- Fixed Q-target means the target network is updated only every few steps, so the learning target does not move all the time.
-- Double DQN separates action selection and action evaluation.
-- In Double DQN, the current network selects the best next action, and the target network evaluates that selected action.
-- This helps reduce Q-value overestimation caused by the max operation.
+- The main goal of reinforcement learning is to find an optimal policy π* that maximizes the expected cumulative reward.
+- Value-based methods learn a value function first, such as Q(s, a), and then derive a policy from the learned values.
+- In Q-learning and DQN, the policy is usually implicit because actions are selected based on the highest Q-value.
+- Policy-based methods directly learn or search for an optimal policy instead of learning a value function first.
+- A parameterized stochastic policy πθ(a|s) outputs a probability distribution over actions given a state.
+- θ represents the trainable parameters of the policy, such as the weights and biases of a neural network.
+- The objective function J(θ) represents the expected cumulative reward of the policy.
+- The goal is to find the value of θ that maximizes J(θ).
+- Policy-gradient methods are a subclass of policy-based methods.
+- Policy-gradient methods directly optimize θ by using gradient ascent on J(θ).
+- Gradient ascent is used because the objective is to maximize expected return.
+- In implementation, this can also be written as minimizing a negative loss using gradient descent.
+- Policy-based methods are often on-policy, meaning they use trajectories collected by the most recent version of the current policy.
+- A stochastic policy can help in perceptual aliasing situations, where different true states look the same to the agent.
+- In the dust-cleaning robot example, two red states have the same observation: walls above and below.
+- These two red states require different actions, but a deterministic policy may always choose the same direction and get stuck.
+- A stochastic policy can choose left or right with some probability, making it more likely to eventually reach the dust.
+- Policy-gradient methods are useful for high-dimensional and continuous action spaces because they do not need to output a Q-value for every possible action.
+- Policy-gradient methods can change action preferences more smoothly over time than value-based greedy policies.
+- Disadvantages of policy-gradient methods include local maximum convergence, slower training, and high variance.
+- Actor-Critic methods will later help reduce variance by combining policy learning with value estimation.
 
-Hugging Face model repos:
+Key summary:
 
-- FrozenLake: `Mantry/q-FrozenLake-v1-4x4-noSlippery`
-- Taxi: `Mantry/q-Taxi-v4`
+Policy-based methods directly learn how to act.  
+Policy-gradient methods optimize a parameterized policy πθ using gradient ascent to maximize expected cumulative reward J(θ).  
+Compared with value-based methods, policy-gradient methods are more flexible for stochastic policies and continuous action spaces, but they can be slower and less stable.
 
 Next step:
 
-- Review the full DQN algorithm from start to finish
-- Organize Day 6 and Day 7 into a separate Unit 3 DQN concept note
-- Prepare a short meeting explanation connecting DQN to smart manufacturing
-- Start DQN hands-on only after the core algorithm feels clearer
-- Later connect DQN ideas to multi-agent reinforcement learning and robotics simulation
+- Continue Unit 4 by reviewing the policy-gradient objective function and gradient ascent.
+- Read the optional Policy Gradient Theorem section at a high level.
+- Complete the Unit 4 glossary and quiz.
+- Prepare a short explanation comparing DQN and Policy Gradient.
+- Later connect Policy Gradient to Actor-Critic, PPO, and multi-agent reinforcement learning.
