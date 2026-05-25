@@ -19,45 +19,71 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 5 | Q-Learning Hands-on: FrozenLake and Taxi | Gymnasium environments, Q-table initialization, greedy policy, epsilon-greedy policy, training loop, evaluation, Hugging Face Hub upload | Notebook + Models |
 | Day 6 | Deep Q-Learning Foundations | From Q-table to neural network approximation, Atari observation space, stacked frames, Q-target, TD error, bootstrapping, epsilon decay, greedy evaluation | In progress |
 | Day 7 | DQN Algorithm and Stabilization | Experience replay, replay memory, fixed Q-target, current network vs target network, Double DQN, theta as learned parameters, phi as processed state input | Concept notes |
+| Day 8 | Policy Gradient Foundations | Policy-based vs value-based methods, stochastic policy, parameterized policy, perceptual aliasing, gradient ascent, advantages and disadvantages | Concept notes |
+| Day 9 | Policy Gradient Objective and REINFORCE | Objective function J(θ), trajectory probability, environment dynamics, log trick, Policy Gradient Theorem, REINFORCE algorithm | Unit 4 notes |
 
-## Day 8 Progress: Policy Gradient Foundations
 
-Restarted RL study after a one-week break and began Unit 4: Policy Gradient with PyTorch.
+## Day 9 Progress: Policy Gradient Objective and REINFORCE
+
+Continued Unit 4: Policy Gradient with PyTorch.
+
+Today focused on understanding the objective function, trajectory probability, the Policy Gradient Theorem, and the REINFORCE algorithm.
 
 New understanding:
 
-- The main goal of reinforcement learning is to find an optimal policy π* that maximizes the expected cumulative reward.
-- Value-based methods learn a value function first, such as Q(s, a), and then derive a policy from the learned values.
-- In Q-learning and DQN, the policy is usually implicit because actions are selected based on the highest Q-value.
-- Policy-based methods directly learn or search for an optimal policy instead of learning a value function first.
-- A parameterized stochastic policy πθ(a|s) outputs a probability distribution over actions given a state.
-- θ represents the trainable parameters of the policy, such as the weights and biases of a neural network.
-- The objective function J(θ) represents the expected cumulative reward of the policy.
-- The goal is to find the value of θ that maximizes J(θ).
-- Policy-gradient methods are a subclass of policy-based methods.
-- Policy-gradient methods directly optimize θ by using gradient ascent on J(θ).
-- Gradient ascent is used because the objective is to maximize expected return.
-- In implementation, this can also be written as minimizing a negative loss using gradient descent.
-- Policy-based methods are often on-policy, meaning they use trajectories collected by the most recent version of the current policy.
-- A stochastic policy can help in perceptual aliasing situations, where different true states look the same to the agent.
-- In the dust-cleaning robot example, two red states have the same observation: walls above and below.
-- These two red states require different actions, but a deterministic policy may always choose the same direction and get stuck.
-- A stochastic policy can choose left or right with some probability, making it more likely to eventually reach the dust.
-- Policy-gradient methods are useful for high-dimensional and continuous action spaces because they do not need to output a Q-value for every possible action.
-- Policy-gradient methods can change action preferences more smoothly over time than value-based greedy policies.
-- Disadvantages of policy-gradient methods include local maximum convergence, slower training, and high variance.
-- Actor-Critic methods will later help reduce variance by combining policy learning with value estimation.
+- A trajectory τ represents one complete episode or rollout history, including states, actions, rewards, and transitions.
+- The return R(τ) is the cumulative reward from one trajectory.
+- The objective function J(θ) represents the expected return of the current policy πθ.
+- J(θ) can be written as the weighted average of all possible trajectories:
+
+  J(θ) = Στ P(τ; θ) R(τ)
+
+- P(τ; θ) is the probability that the current policy generates trajectory τ.
+- A trajectory probability is a product of two main parts at each time step:
+  - Environment dynamics: P(s_{t+1} | s_t, a_t)
+  - Policy action probability: πθ(a_t | s_t)
+- Environment dynamics describe how the environment changes after an action.
+- Policy action probability describes how likely the agent is to choose a specific action in a given state.
+- A trajectory is sequential: the current action affects the next state, and the next state affects future actions.
+- This connects to sequential decision-making, similar to badminton strategy, where a bad shot may be caused by the previous shot or previous positioning.
+- The true policy gradient is hard to compute directly because it would require considering all possible trajectories.
+- It is also difficult because the environment dynamics may be unknown or not differentiable.
+- The Policy Gradient Theorem helps avoid directly differentiating the environment dynamics.
+- The log trick, or likelihood ratio trick, transforms the gradient of trajectory probability into a gradient of log probability.
+- A high-level understanding of the log trick:
+  - log turns products into sums.
+  - ∇ log f(x) = ∇f(x) / f(x).
+  - This allows the gradient to focus on the policy probability terms.
+- Since θ controls the policy but not the environment, the environment dynamics disappear when taking the gradient with respect to θ.
+- The final policy-gradient idea is to increase the probability of actions that appeared in high-return trajectories.
+- REINFORCE, also called Monte Carlo Policy Gradient, uses the estimated return from a complete episode to update the policy.
+- For one trajectory, REINFORCE estimates the gradient by summing the log-probability gradients of selected actions and weighting them by the trajectory return.
+- For multiple trajectories, REINFORCE averages the gradient estimates across sampled episodes.
+- High-return trajectories push up the probabilities of their state-action combinations.
+- Low-return trajectories provide weaker encouragement, and later methods such as baseline, advantage, and Actor-Critic can help reduce variance and improve credit assignment.
 
 Key summary:
 
-Policy-based methods directly learn how to act.  
-Policy-gradient methods optimize a parameterized policy πθ using gradient ascent to maximize expected cumulative reward J(θ).  
-Compared with value-based methods, policy-gradient methods are more flexible for stochastic policies and continuous action spaces, but they can be slower and less stable.
+Policy Gradient does not need to know the full environment transition formula.  
+Instead, it samples trajectories using the current policy, observes their returns, and updates θ so that actions from high-return trajectories become more likely in the future.
+
+REINFORCE is the basic Monte Carlo version of Policy Gradient:  
+collect full episodes, calculate returns, estimate the policy gradient, and update the policy.
+
+Important formulas reviewed:
+
+J(θ) = E_{τ ~ πθ}[R(τ)]
+
+J(θ) = Στ P(τ; θ) R(τ)
+
+P(τ; θ) = Π_t P(s_{t+1} | s_t, a_t) πθ(a_t | s_t)
+
+∇θ J(θ) = E_{πθ}[∇θ log πθ(a_t | s_t) R(τ)]
 
 Next step:
 
-- Continue Unit 4 by reviewing the policy-gradient objective function and gradient ascent.
-- Read the optional Policy Gradient Theorem section at a high level.
+- Review the remaining Unit 4 materials at a high level.
 - Complete the Unit 4 glossary and quiz.
-- Prepare a short explanation comparing DQN and Policy Gradient.
-- Later connect Policy Gradient to Actor-Critic, PPO, and multi-agent reinforcement learning.
+- Revisit the optional Policy Gradient Theorem derivation after understanding the full REINFORCE workflow.
+- Compare REINFORCE with value-based methods such as Q-learning and DQN.
+- Later connect Policy Gradient to Actor-Critic, Advantage, PPO, and multi-agent reinforcement learning.
