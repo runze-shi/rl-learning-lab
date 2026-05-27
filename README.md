@@ -21,69 +21,62 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 7 | DQN Algorithm and Stabilization | Experience replay, replay memory, fixed Q-target, current network vs target network, Double DQN, theta as learned parameters, phi as processed state input | Concept notes |
 | Day 8 | Policy Gradient Foundations | Policy-based vs value-based methods, stochastic policy, parameterized policy, perceptual aliasing, gradient ascent, advantages and disadvantages | Concept notes |
 | Day 9 | Policy Gradient Objective and REINFORCE | Objective function J(θ), trajectory probability, environment dynamics, log trick, Policy Gradient Theorem, REINFORCE algorithm | Unit 4 notes |
+| Day 10 | From REINFORCE to Actor-Critic and Advantage | Variance in REINFORCE, Actor-Critic structure, Critic as value estimator, TD error, Advantage function, A2C intuition | Concept notes |
 
 
-## Day 9 Progress: Policy Gradient Objective and REINFORCE
+## Day 10 Progress: From REINFORCE to Actor-Critic and Advantage
 
-Continued Unit 4: Policy Gradient with PyTorch.
+Continued Unit 6: Actor-Critic Methods.
 
-Today focused on understanding the objective function, trajectory probability, the Policy Gradient Theorem, and the REINFORCE algorithm.
+Today focused on understanding why REINFORCE has high variance and how Actor-Critic methods improve policy learning by adding a value estimator.
 
 New understanding:
 
-- A trajectory τ represents one complete episode or rollout history, including states, actions, rewards, and transitions.
-- The return R(τ) is the cumulative reward from one trajectory.
-- The objective function J(θ) represents the expected return of the current policy πθ.
-- J(θ) can be written as the weighted average of all possible trajectories:
+- REINFORCE updates the policy using full-episode returns.
+- Because full-episode returns can be strongly affected by randomness, REINFORCE has high variance.
+- High variance means the learning signal is unstable across episodes, even if the estimator is not necessarily biased.
+- Actor-Critic methods use two function approximators:
+  - Actor: learns the policy and chooses actions.
+  - Critic: learns a value estimate and evaluates states or state-action pairs.
+- The Actor updates its policy using feedback from the Critic.
+- The Critic updates its value prediction using TD error.
+- TD error compares a new target with the Critic’s current prediction:
 
-  J(θ) = Στ P(τ; θ) R(τ)
+  TD error = TD target - current prediction
 
-- P(τ; θ) is the probability that the current policy generates trajectory τ.
-- A trajectory probability is a product of two main parts at each time step:
-  - Environment dynamics: P(s_{t+1} | s_t, a_t)
-  - Policy action probability: πθ(a_t | s_t)
-- Environment dynamics describe how the environment changes after an action.
-- Policy action probability describes how likely the agent is to choose a specific action in a given state.
-- A trajectory is sequential: the current action affects the next state, and the next state affects future actions.
-- This connects to sequential decision-making, similar to badminton strategy, where a bad shot may be caused by the previous shot or previous positioning.
-- The true policy gradient is hard to compute directly because it would require considering all possible trajectories.
-- It is also difficult because the environment dynamics may be unknown or not differentiable.
-- The Policy Gradient Theorem helps avoid directly differentiating the environment dynamics.
-- The log trick, or likelihood ratio trick, transforms the gradient of trajectory probability into a gradient of log probability.
-- A high-level understanding of the log trick:
-  - log turns products into sums.
-  - ∇ log f(x) = ∇f(x) / f(x).
-  - This allows the gradient to focus on the policy probability terms.
-- Since θ controls the policy but not the environment, the environment dynamics disappear when taking the gradient with respect to θ.
-- The final policy-gradient idea is to increase the probability of actions that appeared in high-return trajectories.
-- REINFORCE, also called Monte Carlo Policy Gradient, uses the estimated return from a complete episode to update the policy.
-- For one trajectory, REINFORCE estimates the gradient by summing the log-probability gradients of selected actions and weighting them by the trajectory return.
-- For multiple trajectories, REINFORCE averages the gradient estimates across sampled episodes.
-- High-return trajectories push up the probabilities of their state-action combinations.
-- Low-return trajectories provide weaker encouragement, and later methods such as baseline, advantage, and Actor-Critic can help reduce variance and improve credit assignment.
+- If TD error is positive, the Critic underestimated the value.
+- If TD error is negative, the Critic overestimated the value.
+- Advantage measures whether an action is better or worse than expected in the current state:
+
+  A(s, a) = Q(s, a) - V(s)
+
+- Advantage is not a probability difference. It is a value / expected return difference.
+- A positive advantage means the action is better than the state’s average expected value.
+- A negative advantage means the action is worse than the state’s average expected value.
+- A2C uses advantage to make policy updates more stable and more informative than using raw returns or raw Q-values.
 
 Key summary:
 
-Policy Gradient does not need to know the full environment transition formula.  
-Instead, it samples trajectories using the current policy, observes their returns, and updates θ so that actions from high-return trajectories become more likely in the future.
+REINFORCE asks: “Did this full episode get a good return?”
 
-REINFORCE is the basic Monte Carlo version of Policy Gradient:  
-collect full episodes, calculate returns, estimate the policy gradient, and update the policy.
+Actor-Critic asks: “Was this action good according to the Critic’s value estimate?”
 
-Important formulas reviewed:
+Advantage Actor-Critic asks: “Was this action better or worse than expected in this state?”
 
-J(θ) = E_{τ ~ πθ}[R(τ)]
+This makes the learning signal more stable and helps reduce the high variance problem in REINFORCE.
 
-J(θ) = Στ P(τ; θ) R(τ)
+Current weak points to revisit:
 
-P(τ; θ) = Π_t P(s_{t+1} | s_t, a_t) πθ(a_t | s_t)
-
-∇θ J(θ) = E_{πθ}[∇θ log πθ(a_t | s_t) R(τ)]
+- TD error sign:
+  - target > prediction → positive TD error → Critic underestimated.
+  - target < prediction → negative TD error → Critic overestimated.
+- Advantage is a value difference, not a probability difference.
+- V(s) is a state-value baseline, not simply a historical average.
 
 Next step:
 
-- Review the remaining Unit 4 materials at a high level.
-- Complete the Unit 4 glossary and quiz.
-- Revisit the optional Policy Gradient Theorem derivation after understanding the full REINFORCE workflow.
-- Compare REINFORCE with value-based methods such as Q-learning and DQN.
-- Later connect Policy Gradient to Actor-Critic, Advantage, PPO, and multi-agent reinforcement learning.
+Do a small hands-on project before moving further:
+- Implement or study a simple Actor-Critic / A2C example.
+- Track Actor output, Critic value prediction, TD target, TD error, and Advantage.
+- Compare REINFORCE-style full-return learning with Actor-Critic step-by-step learning.
+- After hands-on, continue toward PPO and later multi-agent reinforcement learning.
