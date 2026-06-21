@@ -23,58 +23,90 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 9 | Policy Gradient Objective and REINFORCE | Objective function J(θ), trajectory probability, environment dynamics, log trick, Policy Gradient Theorem, REINFORCE algorithm | Unit 4 notes |
 | Day 10 | From REINFORCE to Actor-Critic and Advantage | Variance in REINFORCE, Actor-Critic structure, Critic as value estimator, TD error, Advantage function, A2C intuition | Concept notes |
 | Day 11 | Curiosity-Driven Exploration and ICM | State-dependent rewards, intrinsic reward, feature representation, inverse model, forward model, prediction error as curiosity | Concept notes |
+| Day 12 | Multi-Agent Reinforcement Learning Foundations | MARL motivation, cooperative vs competitive environments, decentralized learning, centralized learning, non-stationarity, perceptual aliasing, shared policy and global reward | Concept notes |
 
+## Day 12 Progress: Multi-Agent Reinforcement Learning Foundations
 
-## Day 11 Progress: Curiosity-Driven Exploration and ICM
+Started learning Multi-Agent Reinforcement Learning (MARL).
 
-Continued Unit 5 and curiosity-driven RL reading.
-
-Today focused on connecting the pyramid / gold brick example from Unit 5 with curiosity-driven exploration and the Intrinsic Curiosity Module (ICM).
+Today focused on understanding why MARL is different from single-agent RL, and how multiple agents can interact in the same environment.
 
 New understanding:
 
-- Reward is not only object-dependent. The same object can have different reward depending on the current state and previous actions.
-- In the pyramid example, a gold brick is meaningful only after the correct state has been reached, such as pressing the button and generating the pyramid.
-- This means the agent should not only recognize objects. It also needs to understand state, action, and environment dynamics.
-- Sparse extrinsic reward is difficult because the agent may receive mostly zero reward before finding the meaningful goal.
-- Curiosity-driven exploration gives the agent an intrinsic reward when the result of an action is hard to predict.
-- In ICM, feature representation Φ(s) means the useful encoded features of a state, not the full raw observation.
-- The inverse model predicts the action from Φ(s_t) and Φ(s_{t+1}).
-- The inverse model loss L_I trains the encoder to keep action-relevant features and ignore irrelevant environmental changes.
-- The forward model predicts Φ(s_{t+1}) from Φ(s_t) and a_t.
-- The forward model loss L_F is the squared L2 prediction error between predicted next features and real next features.
-- The forward prediction error becomes intrinsic reward:
+* In single-agent RL, one agent interacts with the environment and learns a policy that maximizes expected return.
+* In MARL, multiple agents interact with the environment and also interact with each other.
+* This means the learning problem is not only about one agent choosing good actions. It is also about coordination, competition, communication, and shared decision-making.
+* Multi-agent environments can be cooperative, competitive, or mixed.
+* In a cooperative environment, agents work together to maximize a common benefit.
+* For example, warehouse robots may cooperate to load, unload, and move packages efficiently.
+* In a competitive or adversarial environment, agents try to maximize their own benefit while reducing the opponent’s benefit.
+* For example, in a tennis game, each player tries to beat the other player.
+* Some environments are mixed, where agents cooperate with teammates while competing against opponents, such as team sports or multi-agent games.
 
-  r_i = η / 2 * || Φ_hat(s_{t+1}) - Φ(s_{t+1}) ||_2^2
+Today also focused on decentralized and centralized multi-agent system design.
 
-- If prediction error is large, the state is novel or not yet understood, so intrinsic reward is high.
-- If prediction error becomes small, the agent has learned that area, so the curiosity reward decreases.
-- The policy is encouraged to seek high intrinsic reward, while the forward model is trained to reduce prediction error.
-- This creates a learning loop:
+In a decentralized approach:
 
-  unknown area → high prediction error → curiosity reward → exploration → learning → lower error → move to the next unknown area
+* Each agent is trained independently.
+* Each agent treats other agents as part of the environment dynamics, not as learning agents.
+* This makes the system easier to design because each agent can be trained similarly to a single-agent RL problem.
+* However, this creates a non-stationary environment.
+* The environment becomes non-stationary because other agents are also learning and changing their policies over time.
+* From the perspective of one agent, the same state and action may lead to different outcomes because other agents may behave differently.
+* This makes learning harder and can prevent stable convergence.
+* A useful analogy is collaborative writing: if one agent writes the first paragraph, another agent writes the second paragraph, and a third agent writes the third paragraph without sharing context, each paragraph may be locally reasonable but the whole essay may not be logically coherent.
+
+Another important concept was perceptual aliasing in MARL:
+
+* Different global states can look identical from one agent’s local observation.
+* If agents are identical and receive the same observation, they may take the same action.
+* However, in a multi-agent task, identical agents may need to take different actions depending on their global positions, roles, or teammates’ states.
+* This means local observation alone may be insufficient for coordination.
+* The agent may think it is facing the same problem, but from the global perspective it is actually a different situation.
+* This connects to the earlier idea of perceptual aliasing: different real states are compressed into the same observation.
+
+In a centralized approach:
+
+* The system uses a higher-level process to collect agents’ experiences.
+* Agents may share an experience buffer.
+* A common policy can be learned from collective experience.
+* The policy can take global state information as input, such as the coverage map and the positions of all agents.
+* The policy outputs joint actions for all agents.
+* The reward is global, meaning the system evaluates how well the whole team performs instead of only evaluating each individual agent.
+* This can make the environment more stationary because all agents are treated as one larger entity.
+* The centralized view is useful for coordination because the system can reason about the whole team instead of only local behavior.
 
 Key summary:
 
-The pyramid example shows that reward is state-dependent, not simply object-dependent.
+MARL extends reinforcement learning from one agent to multiple interacting agents.
 
-ICM extends this idea by allowing the agent to create its own intrinsic reward from prediction error.
+The main difficulty is that other agents are not just passive parts of the environment. They may also be learning, adapting, competing, or cooperating. This makes the environment non-stationary from each individual agent’s perspective.
 
-The inverse model helps learn what information is action-relevant. The forward model learns how the environment changes after an action. The policy is then encouraged to explore places where the forward model is still surprised.
+Decentralized learning is simple but can suffer from non-stationarity, partial observability, and poor coordination.
+
+Centralized learning can use shared experience, global state, joint actions, and global reward to learn a more coordinated team policy.
+
+A useful way to remember this:
+
+* Decentralized MARL = many small agents learning independently.
+* Centralized MARL = many agents treated as one larger system with shared experience and global coordination.
+* The ideal future direction may be centralized training with decentralized execution, where agents learn with global information but act locally during deployment.
+
+Personal connection:
+
+This topic feels closely related to intelligent agent systems and future AI companion design. A multi-agent system is not only about making one agent smarter. It is about designing how many agents share memory, communicate, divide roles, coordinate actions, and optimize a shared goal.
 
 Current weak points to revisit:
 
-- The negative sign in the policy objective:
-  - RL wants to maximize expected reward.
-  - The combined objective is written as minimization.
-  - Therefore the reward term appears as negative expected return.
-- L_F has two roles:
-  - For the policy, larger prediction error means larger intrinsic reward.
-  - For the forward model, larger prediction error means larger loss that should be minimized.
-- L_I does not directly create curiosity reward. It mainly helps learn action-relevant feature representation.
+* The exact difference between centralized learning and centralized training with decentralized execution.
+* How parameter sharing works when agents are identical.
+* How to avoid identical agents taking identical actions when they receive similar observations.
+* How global reward can create credit assignment problems.
+* How MARL algorithms handle non-stationarity in practice.
 
 Next step:
 
-- Review the original ICM paper or a clean implementation.
-- Draw the ICM computation graph from raw state to Φ(s), inverse loss, forward loss, and intrinsic reward.
-- After this conceptual pass, move toward PPO and compare curiosity-driven exploration with standard extrinsic-reward optimization.
+* Continue the MARL unit with self-play.
+* Understand how agents can improve by playing against themselves or historical versions of themselves.
+* Connect self-play with competitive environments, team games, and AI-vs-AI training.
+* Later, compare centralized MARL with practical algorithms used in robotics, simulation, and smart manufacturing.
