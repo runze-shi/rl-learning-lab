@@ -25,131 +25,228 @@ My long-term interest is to connect AI, simulation, game systems, robotics, and 
 | Day 11 | Curiosity-Driven Exploration and ICM | State-dependent rewards, intrinsic reward, feature representation, inverse model, forward model, prediction error as curiosity | Concept notes |
 | Day 12 | Multi-Agent Reinforcement Learning Foundations | MARL motivation, cooperative vs competitive environments, decentralized learning, centralized learning, non-stationarity, perceptual aliasing, shared policy and global reward | Concept notes |
 | Day 13 | Self-Play and ELO Evaluation in MARL | Self-play, opponent pool, historical policy copies, opponent difficulty, ML-Agents self-play hyperparameters, ELO rating, K-factor, relative skill evaluation | Concept notes |
+| Day 14 | Proximal Policy Optimization (PPO) Foundations | Policy optimization, on-policy learning, actor-critic structure, probability ratio, clipped surrogate objective, advantage estimates, multiple epochs, stability vs sample efficiency | Concept notes |
 
-## Day 13 Progress: Self-Play and ELO Evaluation in MARL
+## Day 14 Progress: Proximal Policy Optimization (PPO)
 
-Continued the MARL unit and focused on self-play and ELO-based evaluation.
+Continued policy-gradient and actor-critic learning and focused on Proximal Policy Optimization, usually called PPO.
 
-Today focused on understanding how agents can improve in adversarial environments when it is difficult to choose a suitable opponent.
-
-New understanding:
-
-* In adversarial games, training an agent correctly can be difficult because the opponent’s skill level strongly affects learning.
-* If the opponent is too weak, the agent may overfit to useless strategies that only work against weak opponents.
-* If the opponent is too strong, the agent may lose constantly and fail to receive useful learning signals.
-* The ideal opponent should be close to the agent’s current level and should gradually become stronger as the agent improves.
-* Self-play solves this problem by using copies of the agent’s own policy as opponents.
-* The agent can start by playing against a copy of itself, then later play against newer or older versions of itself.
-* This allows the opponent difficulty to increase progressively without needing an external expert opponent.
-* Self-play can be understood as bootstrapping an opponent from the agent’s own learning process.
-
-A useful human-learning analogy:
-
-* If I am a level 3 badminton player, playing only against level 1 players is too easy and may teach bad habits.
-* Playing only against level 5 players is too hard and may give too little useful feedback.
-* The best training pool is around level 2 to level 4, with occasional exposure to level 5.
-* Training should include a mixture of stable opponents, similar-level opponents, and slightly stronger opponents.
-* This is similar to self-play: the best opponent is not only the strongest version, but a pool of different historical versions.
-
-Today also studied self-play hyperparameters in ML-Agents.
-
-New understanding of hyperparameters:
-
-* `swap_steps` controls how often the agent changes opponents.
-* If opponents change too quickly, training may become unstable.
-* If opponents change too slowly, the agent may overfit to a single opponent.
-* `window` controls how many historical opponents are saved in the opponent pool.
-* A larger window means more opponent diversity because the agent can train against policies from different stages of training.
-* `play_against_latest_model_ratio` controls how often the agent plays against the latest version of itself instead of a sampled historical opponent.
-* A higher ratio means the agent plays more often against its most recent version, which can create stronger pressure to improve but may reduce stability.
-* `save_steps` controls how often a new version of the policy is saved into the opponent pool.
-* If policies are saved too frequently, many saved opponents may be too similar.
-* If policies are saved too rarely, the opponent pool may miss useful intermediate difficulty levels.
-* `team_change` can be understood as how often teams or opponents are changed in team-based settings.
-
-Key idea:
-
-Self-play is not simply “playing against yourself.” It is a way to construct an adaptive opponent curriculum. The agent learns from opponents that are similar to itself, older than itself, or slightly stronger than itself.
-
-Today also studied ELO as a way to evaluate agents.
+Today focused on understanding why PPO became one of the most commonly used deep reinforcement learning algorithms, especially for continuous control, robotics-style environments, simulation, and agent training.
 
 New understanding:
 
-* In adversarial games, cumulative reward is not always a meaningful metric because performance depends heavily on opponent strength.
-* ELO is a relative rating system that estimates the skill level of players or agents based on match outcomes.
-* ELO is especially useful in zero-sum games, where one side’s gain corresponds to the other side’s loss.
-* The expected score is calculated from the rating difference between two players.
-* If a high-rated player beats a low-rated player, the high-rated player gains only a few points because the result was expected.
-* If a low-rated player beats a high-rated player, the low-rated player gains many points because the result was unexpected.
-* If there is a draw, the lower-rated player may gain some points because drawing against a stronger opponent is better than expected.
+* PPO is a policy-gradient and actor-critic method.
+* The actor learns a policy that decides which action to take.
+* The critic learns a value function that estimates how good the current state is.
+* PPO is designed to make policy updates more stable than basic policy-gradient methods.
+* In vanilla policy gradient, one large update can change the policy too much and make the agent suddenly perform worse.
+* PPO tries to improve the policy while preventing the new policy from moving too far away from the old policy.
+* The key idea of PPO is not simply to maximize reward as fast as possible, but to make controlled, safe, and stable updates.
 
-ELO update formula:
+Core problem PPO tries to solve:
+
+* In policy-gradient methods, the agent directly changes its policy.
+* If the policy changes too aggressively, the agent may forget useful behavior.
+* A bad update can make previously good actions much less likely.
+* This can cause unstable learning or performance collapse.
+* Earlier methods such as TRPO tried to solve this by limiting how far the new policy can move from the old policy.
+* PPO keeps a similar idea but uses a simpler clipped objective instead of a complicated constrained optimization method.
+
+Important idea: old policy vs new policy
+
+* PPO collects data using the current policy, then treats that policy as the old policy during the update.
+* The old policy is the policy that generated the training data.
+* The new policy is the policy currently being updated.
+* PPO compares the probability of taking the same action under the new policy and the old policy.
+* This comparison tells us whether the update is making an action more or less likely than before.
+
+Probability ratio:
 
 ```text
-R'_A = R_A + K(S_A - E_A)
+r_t(θ) = π_θ(a_t | s_t) / π_old(a_t | s_t)
 ```
 
 Where:
 
-* `R_A` is the current rating of player A.
-* `R'_A` is the updated rating.
-* `E_A` is the expected score.
-* `S_A` is the actual score, where win = 1, draw = 0.5, and loss = 0.
-* `K` is the K-factor, which controls how much the rating changes after one game.
+* `π_θ(a_t | s_t)` is the probability of taking action `a_t` in state `s_t` under the new policy.
+* `π_old(a_t | s_t)` is the probability of taking the same action under the old policy.
+* `r_t(θ)` is the probability ratio between the new and old policy.
 
-Understanding K-factor:
+Understanding the probability ratio:
 
-* K-factor is like the learning rate of the rating system.
-* A larger K means the rating changes more after each game.
-* A smaller K means the rating changes more slowly and remains more stable.
-* New or uncertain players usually have a larger K because the system is less certain about their true skill.
-* Experienced or high-level players usually have a smaller K because their rating has already been tested over many games.
-* In the same match, different players may use different K values.
-* This means a new account and an old account can have similar ratings and be matched together, but their rating changes after the match may be different.
-* If both sides use the same K, rating changes are more symmetric.
-* If players use different K values, rating changes may not be perfectly zero-sum.
+* If `r_t(θ) = 1`, the new policy gives the action the same probability as the old policy.
+* If `r_t(θ) > 1`, the new policy makes the action more likely.
+* If `r_t(θ) < 1`, the new policy makes the action less likely.
+* PPO uses this ratio to measure how much the policy has changed for the sampled action.
 
-Advantages of ELO:
+Connection to advantage:
 
-* Points are balanced when using the same K-factor, because the winner takes points from the loser.
-* It is self-correcting: beating weak opponents gives only a few points, while beating strong opponents gives more points.
-* It works reasonably well for team games by using the average rating of each team.
+* PPO uses the advantage value to decide whether increasing or decreasing an action’s probability is good.
+* Advantage measures whether an action was better or worse than expected.
+* A positive advantage means the action performed better than expected.
+* A negative advantage means the action performed worse than expected.
 
-Disadvantages of ELO:
+Intuition:
 
-* ELO does not directly measure each individual’s contribution in a team game.
-* In team settings, all players may gain or lose rating together even if their individual contributions were very different.
-* This connects to the credit assignment problem in MARL.
-* Rating deflation can occur because a good rating requires maintaining skill over time.
-* Ratings from different historical periods cannot always be compared directly because the player population, strategies, environment, or game version may have changed.
+* If the advantage is positive, PPO wants to increase the probability of that action.
+* If the advantage is negative, PPO wants to decrease the probability of that action.
+* But PPO does not want to change the probability too much in one update.
+* This is why PPO uses clipping.
 
-Key summary:
+Clipped surrogate objective:
 
-Self-play helps an agent improve by training it against adaptive opponents generated from its own past and current policies.
+```text
+L_CLIP(θ) = E[min(r_t(θ)A_t, clip(r_t(θ), 1 - ε, 1 + ε)A_t)]
+```
 
-The opponent pool should contain a useful range of difficulties and behaviors. Too easy leads to overfitting. Too hard leads to poor learning. A diverse pool helps the agent learn a more general and robust policy.
+Where:
 
-ELO is useful for evaluating agents in adversarial environments because it measures relative skill instead of only tracking reward. However, ELO depends on the opponent population and does not directly explain individual contribution or specific skill improvement.
+* `A_t` is the advantage estimate.
+* `r_t(θ)` is the probability ratio.
+* `ε` is the clipping range, often something like `0.1` or `0.2`.
+* `clip(r_t(θ), 1 - ε, 1 + ε)` limits the probability ratio to a safe range.
+* The `min` operation chooses the more conservative objective.
+
+Understanding clipping:
+
+* PPO does not allow the new policy to gain unlimited benefit from making an action much more likely.
+* If the probability ratio becomes too large, it is clipped.
+* If the probability ratio becomes too small, it is also clipped.
+* This discourages overly aggressive policy updates.
+* The policy can still improve, but the improvement is constrained.
+* This makes PPO more stable than basic policy-gradient methods.
+
+Positive advantage case:
+
+* If an action has positive advantage, PPO wants to increase its probability.
+* However, once the probability ratio goes above `1 + ε`, the objective is clipped.
+* This means PPO stops rewarding the policy for increasing that action’s probability too much.
+* The agent learns: “This action was good, but do not over-update too aggressively.”
+
+Negative advantage case:
+
+* If an action has negative advantage, PPO wants to reduce its probability.
+* However, once the probability ratio goes below `1 - ε`, the objective is clipped.
+* This prevents the policy from reducing the action probability too much in a single update.
+* The agent learns: “This action was bad, but do not erase it too aggressively.”
+
+Why PPO is still on-policy:
+
+* PPO is considered an on-policy algorithm.
+* The data is collected using the current or recent version of the policy.
+* PPO cannot reuse old experience indefinitely like DQN experience replay.
+* This is because the probability ratio depends on the old policy that generated the data.
+* If the data becomes too old, it no longer represents the current policy well.
+* However, PPO can usually reuse the same batch for multiple training epochs.
+* This makes PPO more sample-efficient than simple REINFORCE or basic A2C.
+
+Actor-Critic structure in PPO:
+
+* The actor outputs the policy, usually as an action distribution.
+* The critic estimates the value of the current state.
+* The critic helps compute the advantage.
+* The actor uses the advantage to update the policy.
+* The critic is trained to make better value predictions.
+* PPO often combines policy loss, value loss, and entropy bonus in the full training objective.
+
+Typical PPO loss components:
+
+* Policy loss: improves the actor using the clipped surrogate objective.
+* Value loss: trains the critic to predict returns or value targets.
+* Entropy bonus: encourages exploration by preventing the policy from becoming too deterministic too early.
+
+Entropy in PPO:
+
+* Entropy measures how uncertain or spread out the policy distribution is.
+* Higher entropy means the policy explores more.
+* Lower entropy means the policy is more confident and deterministic.
+* An entropy bonus encourages the agent to keep exploring.
+* This is useful early in training because the agent should not commit too quickly to one behavior.
+
+Why PPO is popular:
+
+* PPO is relatively simple to implement compared with TRPO.
+* PPO is usually more stable than vanilla policy gradient.
+* PPO works well in many continuous-control environments.
+* PPO can be used with neural-network policies.
+* PPO balances stability and learning speed.
+* PPO is a strong default algorithm for many reinforcement learning tasks.
+
+Comparison with earlier algorithms:
+
+* Compared with REINFORCE, PPO has lower variance because it usually uses a critic and advantage estimates.
+* Compared with A2C, PPO can often use multiple epochs of updates on the same batch.
+* Compared with DQN, PPO directly learns a policy instead of learning a Q-value table or Q-network.
+* Compared with DQN, PPO is more naturally suited for continuous action spaces.
+* Compared with TRPO, PPO has a simpler objective and is easier to implement.
+
+Important limitation:
+
+* PPO is not a magic algorithm.
+* It still requires careful hyperparameter tuning.
+* It can still be sample-inefficient compared with human learning.
+* It can still fail if the reward design is poor.
+* It can still overfit to a specific environment setup.
+* PPO is stable, but not guaranteed to find the best possible policy.
+
+Human-learning analogy:
+
+PPO feels like learning a badminton skill without changing my whole playstyle too violently.
+
+If I discover that a certain shot works well, I should use it more. But if I suddenly force that shot every rally, I may become predictable or break my overall rhythm.
+
+If one shot fails, I should use it less. But I should not completely delete it from my skill set after one bad result.
+
+PPO is like a cautious coach saying:
+
+```text
+Improve in the direction that worked,
+but do not change too much at once.
+```
+
+This connects to badminton training:
+
+* A good update is not the biggest possible update.
+* A good update is stable, understandable, and repeatable.
+* If I change my grip, footwork, or swing too aggressively, my whole system may collapse.
+* Small controlled changes are easier to integrate.
+* PPO’s clipped update is similar to controlled technical correction: improve, but stay close enough to the previous stable version.
+
+Key idea:
+
+PPO improves a policy by comparing the new policy with the old policy and clipping the update when the change becomes too large.
+
+The agent should become better, but not by making unstable jumps.
+
+PPO is important because it gives policy-gradient learning a practical balance between exploration, improvement, and stability.
 
 Personal connection:
 
-Self-play feels closely related to human learning. The best opponent is not always the strongest person. A good learning system needs a pool of opponents around my current level, slightly below my level for stability, and slightly above my level for growth.
+PPO feels closely related to my own learning process.
 
-This also connects to badminton training: if I am currently around level 3, I should mostly train with level 2 to level 4 players, occasionally play against level 5 players, and avoid only playing against level 1 players. Learning works best when the challenge is difficult but still understandable.
+When I study reinforcement learning, badminton, or programming, I should not completely rewrite my habits every day. I should update my behavior in a controlled way.
+
+If something works, increase it slightly.
+If something does not work, reduce it slightly.
+But do not destroy the whole system after one result.
+
+This makes PPO feel like a “safe self-improvement algorithm.”
 
 Current weak points to revisit:
 
-* How self-play is implemented in code in ML-Agents.
-* How opponent sampling works from the saved policy window.
-* The exact difference between latest model ratio and opponent window.
-* How self-play avoids overfitting to a single historical opponent.
-* How ELO is computed for teams in practical MARL environments.
-* How ELO relates to modern rating systems such as MMR, Glicko, or TrueSkill.
-* How to evaluate individual contribution in team-based MARL beyond ELO.
+* How advantage is estimated in PPO.
+* How Generalized Advantage Estimation works.
+* The exact difference between PPO and A2C in implementation.
+* Why PPO can update for multiple epochs while still being considered on-policy.
+* How the value loss and policy loss are combined.
+* How entropy bonus affects exploration.
+* How PPO handles continuous action spaces.
+* How PPO is implemented in libraries such as Stable-Baselines3, CleanRL, or ML-Agents.
+* How PPO relates to RLHF and large language model alignment.
 
 Next step:
 
-* Continue the MARL unit with the soccer team AI-vs-AI example.
-* Understand how self-play is applied in a concrete team environment.
-* Connect self-play, ELO, team reward, and opponent pools to practical MARL training.
-* Later, compare this with smart manufacturing scenarios where agents may cooperate, compete for resources, or coordinate under shared global objectives.
+* Study PPO implementation details.
+* Understand Generalized Advantage Estimation.
+* Compare PPO with A2C using the actor-critic training loop.
+* Later, connect PPO to RLHF and understand why PPO became important in human-feedback-based language model training.
